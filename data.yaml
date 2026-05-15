@@ -1,0 +1,6 @@
+train: /Users/radhika/Downloads/windmill_detection/train/images
+val: /Users/radhika/Downloads/windmill_detection/valid/images
+
+nc: 4
+names: ['antenna', 'chimney', 'power-lines', 'wind-turbine']
+

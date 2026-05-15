@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+
+# Data (Too large for GitHub)
+train/
+valid/
+dataset.zip
+
+# Models
+yolov8n.pt
+yolov8s.pt
+yolov8m.pt
+yolov8l.pt
+yolov8x.pt
+
+# Simulation/Temp
+temp_*
+server.log
+nohup.out

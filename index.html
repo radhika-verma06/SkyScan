@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyScan AI | Industrial Infrastructure Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #f093fb;
+            --bg: #05060a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --card-bg: rgba(10, 11, 20, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Animated Background Particles */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 10% 20%, rgba(79, 172, 254, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(240, 147, 251, 0.08) 0%, transparent 40%);
+        }
+
+        header {
+            padding: 5rem 2rem 3rem;
+            text-align: center;
+            max-width: 900px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 242, 254, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0); }
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+        }
+
+        p.subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        main {
+            width: 95%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2.5rem;
+            padding-bottom: 6rem;
+        }
+
+        .upload-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--glass-border);
+            border-radius: 20px;
+            aspect-ratio: 16/10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 254, 0.02);
+            transform: scale(1.01);
+        }
+
+        #preview-canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: #001219;
+            padding: 1.2rem 2.5rem;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 242, 254, 0.2);
+        }
+
+        .btn-predict:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 242, 254, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-predict:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .latency-container {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .latency-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .stats-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.8rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .mini-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.2rem;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .mini-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
+        }
+
+        .mini-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        #results-list {
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            margin-bottom: 0.8rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .result-item:hover {
+            border-color: var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .class-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .conf-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1000px) {
+            main { grid-template-columns: 1fr; }
+            header h1 { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <header>
+        <div class="badge">SkyScan V2.0 High Precision</div>
+        <h1>SkyScan AI</h1>
+        <p class="subtitle">Next-generation industrial object detection. Deploying deep neural networks to monitor antennas, chimneys, power lines, and wind turbines with millisecond latency.</p>
+    </header>
+
+    <main>
+        <div class="upload-panel">
+            <div class="drop-zone" id="drop-zone">
+                <div id="drop-text">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Drop infrastructure imagery here</p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">High-res JPG or PNG preferred</p>
+                </div>
+                <canvas id="preview-canvas"></canvas>
+            </div>
+            
+            <input type="file" id="file-input" hidden accept="image/*">
+            
+            <div class="action-bar">
+                <div class="latency-container" id="latency-view" style="visibility: hidden;">
+                    <div class="latency-dot"></div>
+                    <span>Inference: <strong id="latency-val">0</strong>ms</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div class="loader" id="loader"></div>
+                    <button class="btn-predict" id="predict-btn" disabled>Full Neural Scan</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-panel">
+            <div class="glass-card">
+                <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> System Status</h3>
+                <div class="mini-card">
+                    <p class="mini-label" id="model-label">Loading Core...</p>
+                    <p class="mini-value" id="model-status" style="font-size: 1.1rem; color: var(--primary);">Synchronizing...</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Analytics</h3>
+                <div class="stat-grid">
+                    <div class="mini-card">
+                        <p class="mini-label">Detections</p>
+                        <p class="mini-value" id="detection-count">0</p>
+                    </div>
+                    <div class="mini-card">
+                        <p class="mini-label">Confidence</p>
+                        <p class="mini-value" id="avg-conf">0%</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <p class="mini-label" style="margin-bottom: 1rem;">Target Identification</p>
+                    <ul id="results-list">
+                        <li style="color: var(--text-dim); font-size: 0.9rem; text-align: center; padding: 2rem 0;">Awaiting neural input...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewCanvas = document.getElementById('preview-canvas');
+        const ctx = previewCanvas.getContext('2d');
+        const predictBtn = document.getElementById('predict-btn');
+        const loader = document.getElementById('loader');
+        const resultsList = document.getElementById('results-list');
+        const detectionCount = document.getElementById('detection-count');
+        const avgConf = document.getElementById('avg-conf');
+        const modelStatus = document.getElementById('model-status');
+        const modelLabel = document.getElementById('model-label');
+        const latencyView = document.getElementById('latency-view');
+        const latencyVal = document.getElementById('latency-val');
+
+        let selectedFile = null;
+        let originalImage = null;
+
+        async function checkStatus() {
+            try {
+                const res = await fetch('/status');
+                const data = await res.json();
+                if (data.checkpoint_exists) {
+                    modelLabel.innerText = "Custom Model Active";
+                    modelStatus.innerText = "YOLOv8s High-Precision";
+                    modelStatus.style.color = "var(--primary)";
+                } else {
+                    modelLabel.innerText = "Baseline Active";
+                    modelStatus.innerText = "YOLOv8n (Training Pending)";
+                    modelStatus.style.color = "#ffcc00";
+                }
+            } catch (e) {
+                modelStatus.innerText = "Connection Lost";
+                modelStatus.style.color = "#ff4444";
+            }
+        }
+        setInterval(checkStatus, 5000);
+        checkStatus();
+
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; };
+        dropZone.ondragleave = () => { dropZone.style.borderColor = 'var(--glass-border)'; };
+        dropZone.ondrop = (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); };
+
+        function handleFile(file) {
+            if (!file) return;
+            selectedFile = file;
+            predictBtn.disabled = false;
+            latencyView.style.visibility = 'hidden';
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    renderImage(img);
+                    document.getElementById('drop-text').style.display = 'none';
+                    previewCanvas.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderImage(img, detections = []) {
+            const displayWidth = dropZone.clientWidth;
+            const ratio = img.width / img.height;
+            
+            previewCanvas.width = img.width;
+            previewCanvas.height = img.height;
+            
+            ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            ctx.drawImage(img, 0, 0);
+
+            detections.forEach(det => {
+                const [x1, y1, x2, y2] = det.bbox;
+                
+                // Neon UI Box
+                ctx.strokeStyle = 'rgba(0, 242, 254, 0.8)';
+                ctx.lineWidth = Math.max(6, img.width / 150);
+                ctx.lineJoin = 'round';
+                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                
+                // Outer Glow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = 'rgba(0, 242, 254, 0.5)';
+                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                ctx.shadowBlur = 0;
+
+                // Futuristic Label
+                const fontSize = Math.max(18, img.width / 45);
+                ctx.font = `800 ${fontSize}px Inter`;
+                const label = `${det.class.toUpperCase()}`;
+                const conf = `${(det.confidence * 100).toFixed(0)}%`;
+                const fullText = `${label} ${conf}`;
+                const padding = 10;
+                const textW = ctx.measureText(fullText).width + padding * 2;
+                
+                ctx.fillStyle = 'rgba(0, 242, 254, 0.9)';
+                ctx.fillRect(x1, y1 - fontSize - padding, textW, fontSize + padding);
+                
+                ctx.fillStyle = '#001219';
+                ctx.fillText(fullText, x1 + padding, y1 - padding);
+            });
+        }
+
+        predictBtn.onclick = async () => {
+            if (!selectedFile) return;
+            loader.style.display = 'block';
+            predictBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const res = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                renderImage(originalImage, data.detections);
+                updateUI(data);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                loader.style.display = 'none';
+                predictBtn.disabled = false;
+            }
+        };
+
+        function updateUI(data) {
+            const detections = data.detections;
+            detectionCount.innerText = detections.length;
+            latencyVal.innerText = data.latency_ms;
+            latencyView.style.visibility = 'visible';
+            
+            if (detections.length > 0) {
+                const totalConf = detections.reduce((sum, d) => sum + d.confidence, 0);
+                avgConf.innerText = Math.round((totalConf / detections.length) * 100) + '%';
+            } else {
+                avgConf.innerText = '0%';
+            }
+
+            resultsList.innerHTML = '';
+            if (detections.length === 0) {
+                resultsList.innerHTML = '<li style="text-align: center; color: var(--text-dim); padding: 1rem;">No structures identified.</li>';
+                return;
+            }
+
+            detections.forEach(det => {
+                const li = document.createElement('li');
+                li.className = 'result-item';
+                li.innerHTML = `
+                    <span class="class-name">${det.class}</span>
+                    <span class="conf-badge">${(det.confidence * 100).toFixed(1)}%</span>
+                `;
+                resultsList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
