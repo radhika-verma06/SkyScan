@@ -3,8 +3,11 @@
 [![AI Model](https://img.shields.io/badge/AI-YOLOv8s-00f2fe)](https://github.com/ultralytics/ultralytics)
 [![UI](https://img.shields.io/badge/UI-Glassmorphism_v2.0-blueviolet)](#)
 [![Status](https://img.shields.io/badge/Status-Industrial_Ready-success)](#)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-SkyScan_AI-orange)](https://skyscan-ods6.onrender.com)
 
 SkyScan AI is a high-precision object detection platform designed to monitor and analyze industrial infrastructure. Built with **YOLOv8s** and deployed via a modern **FastAPI** backend, SkyScan identifies wind turbines, antennas, power lines, and chimneys with millisecond latency.
+
+**Live Link**: [https://skyscan-ods6.onrender.com](https://skyscan-ods6.onrender.com)
 
 ![SkyScan Dashboard Preview](https://github.com/radhika-verma06/SkyScan/raw/main/runs/detect/high_precision_windmill-4/results.png) *(Note: Add your own result image path here!)*
 
