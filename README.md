@@ -1,57 +1,168 @@
-# 🔭 SkyScan AI | Industrial Infrastructure Analytics
+# 🔭 SkyScan AI  
+### Industrial Infrastructure Object Detection Platform
 
-[![AI Model](https://img.shields.io/badge/AI-YOLOv8s-00f2fe)](https://github.com/ultralytics/ultralytics)
-[![UI](https://img.shields.io/badge/UI-Glassmorphism_v2.0-blueviolet)](#)
-[![Status](https://img.shields.io/badge/Status-Industrial_Ready-success)](#)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-SkyScan_AI-orange)](https://skyscan-ods6.onrender.com)
+SkyScan AI is a computer vision platform designed to detect and analyse industrial infrastructure from images. It uses a custom-trained **YOLOv8s** object detection model to identify infrastructure classes such as wind turbines, antennas, power lines, and chimneys.
 
-SkyScan AI is a high-precision object detection platform designed to monitor and analyze industrial infrastructure. Built with **YOLOv8s** and deployed via a modern **FastAPI** backend, SkyScan identifies wind turbines, antennas, power lines, and chimneys with millisecond latency.
-
-**Live Link**: [https://skyscan-ods6.onrender.com](https://skyscan-ods6.onrender.com)
-
-![SkyScan Dashboard Preview](https://github.com/radhika-verma06/SkyScan/raw/main/runs/detect/high_precision_windmill-4/results.png) *(Note: Add your own result image path here!)*
+The project demonstrates applied object detection, model training, FastAPI deployment, and a modern browser-based interface for AI-powered infrastructure analysis.
 
 ---
 
-## ⚡ Core Features
-- **Neural Infrastructure Scan**: Trained on 1,000+ specialized industrial images.
-- **Micro-Latency Inference**: Real-time performance metrics (ms) built into the UI.
-- **Glassmorphism V2.0 Dashboard**: A premium, futuristic interface with neon detection highlighting.
-- **Cloud-Ready Training**: Includes an automated Colab pipeline for high-precision model scaling.
+## 🚀 Live Demo
+
+**Live App:** https://skyscan-ods6.onrender.com
+
+---
+
+## ✨ Core Features
+
+- Object detection using YOLOv8s
+- Detection of industrial infrastructure classes:
+  - wind turbines
+  - antennas
+  - power lines
+  - chimneys
+- FastAPI backend for image inference
+- Browser-based upload and detection interface
+- Real-time confidence scores and bounding boxes
+- Training notebook included for model experimentation
+- Designed for infrastructure monitoring and visual inspection use cases
+
+---
+
+## 🧠 Model Overview
+
+SkyScan uses **YOLOv8s** from Ultralytics for object detection.
+
+The model was trained on a specialised infrastructure image dataset containing approximately **1,190 images** across four object classes:
+
+| Class | Description |
+|---|---|
+| wind-turbine | Wind turbine detection |
+| antenna | Antenna and tower-like structure detection |
+| power-lines | Power line detection |
+| chimney | Chimney or industrial stack detection |
+
+The training workflow was developed using Google Colab with GPU acceleration.
+
+---
 
 ## 🛠️ Tech Stack
-- **AI Core**: YOLOv8s (Ultralytics)
-- **Backend**: FastAPI / Uvicorn / OpenCV
-- **Frontend**: Vanilla JS / Glassmorphism CSS / HTML5
-- **Training**: Google Colab T4 GPU
+
+| Layer | Technology |
+|---|---|
+| Model | YOLOv8s |
+| Computer Vision | OpenCV |
+| Backend | FastAPI, Uvicorn |
+| Frontend | HTML, CSS, JavaScript |
+| Training | Google Colab |
+| Language | Python |
+| Deployment | Render |
 
 ---
 
-## 🚀 Quick Start (Local)
+## 📦 Local Setup
 
-### 1. Clone the Repository
+### 1. Clone the repository
+
 ```bash
 git clone https://github.com/radhika-verma06/SkyScan.git
 cd SkyScan
 ```
 
-### 2. Install Dependencies
+### 2. Install dependencies
+
 ```bash
 pip install ultralytics fastapi uvicorn opencv-python-headless python-multipart
 ```
 
-### 3. Launch the Engine
+### 3. Run the application
+
 ```bash
 python3 app.py
 ```
-Visit **`http://localhost:8000`** to start scanning.
+
+The app will run locally at:
+
+```text
+http://localhost:8000
+```
 
 ---
 
-## 🧠 Model Training
-The project includes `windmill_training_v2.ipynb` which is optimized for Google Colab. 
-- **Dataset**: 1,190 images (4 classes: `antenna`, `chimney`, `power-lines`, `wind-turbine`).
-- **Precision**: 50 Epochs with advanced augmentations (Mixup/Mosaic).
+## 📁 Project Structure
+
+```text
+SkyScan/
+├── app.py
+├── static/
+├── templates/
+├── runs/
+├── windmill_training_v2.ipynb
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 📊 Training Workflow
+
+The included training notebook, `windmill_training_v2.ipynb`, documents the model development process.
+
+The training process includes:
+
+- dataset preparation
+- class labelling
+- YOLOv8s model configuration
+- model training
+- validation
+- inference testing
+- result visualisation
+
+---
+
+## 💡 Use Cases
+
+SkyScan can be used as a prototype for:
+
+- infrastructure inspection
+- renewable energy asset monitoring
+- aerial image analysis
+- industrial site review
+- computer vision portfolio demonstration
+
+---
+
+## ⚠️ Limitations
+
+This project is a prototype and should not be treated as a production-grade inspection system without further validation.
+
+Current limitations include:
+
+- limited dataset size
+- performance depends on image quality and angle
+- model may struggle with occluded or distant objects
+- requires further testing on real-world industrial inspection data
+
+---
+
+## 🔮 Future Improvements
+
+- Train on a larger and more diverse dataset
+- Add precision, recall, and mAP evaluation results to the README
+- Add batch image upload
+- Add video inference support
+- Add object count summaries
+- Improve deployment reliability
+- Add Docker support
+- Add model version tracking
+
+---
 
 ## 📄 License
-MIT License - Developed by Radhika Verma (3rd Year AI Student)
+
+MIT License
+
+---
+
+### Developed by Radhika Verma  
+AI Student | Computer Vision | Applied AI Systems
