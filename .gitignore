@@ -22,3 +22,6 @@ yolov8x.pt
 temp_*
 server.log
 nohup.out
+
+# macOS
+.DS_Store

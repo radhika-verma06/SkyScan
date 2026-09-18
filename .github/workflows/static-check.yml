@@ -1,0 +1,28 @@
+name: Static Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax-check server code
+        run: python -m py_compile app.py train.py
+
+      - name: Verify deployed checkpoint is present
+        run: test -f runs/detect/high_precision_windmill-4/weights/best.pt
+
+      - name: Verify README links match repo
+        run: |
+          grep -q 'github.com/radhika-verma06/SkyScan' README.md
+          grep -q 'skyscan-ods6.onrender.com' README.md

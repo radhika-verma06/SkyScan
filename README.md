@@ -1,168 +1,164 @@
-# 🔭 SkyScan AI  
-### Industrial Infrastructure Object Detection Platform
+# 🔭 SkyScan AI
 
-SkyScan AI is a computer vision platform designed to detect and analyse industrial infrastructure from images. It uses a custom-trained **YOLOv8s** object detection model to identify infrastructure classes such as wind turbines, antennas, power lines, and chimneys.
+**Industrial infrastructure object detection — custom-trained YOLOv8s, deployed end-to-end.**
 
-The project demonstrates applied object detection, model training, FastAPI deployment, and a modern browser-based interface for AI-powered infrastructure analysis.
+🚀 **Live demo:** https://skyscan-ods6.onrender.com
+📡 **API docs (Swagger):** https://skyscan-ods6.onrender.com/docs
 
----
+Upload an image and SkyScan detects **wind turbines, antennas, power lines, and chimneys** using a YOLOv8s model trained from scratch on a custom dataset — served through a FastAPI backend with a real-time browser frontend.
 
-## 🚀 Live Demo
+> ️ **Free-tier note:** the demo sleeps after ~15 min of inactivity; the first request may take 1–2 minutes while the service wakes and loads the model. Subsequent requests are fast.
 
-**Live App:** https://skyscan-ods6.onrender.com
-
----
-
-## ✨ Core Features
-
-- Object detection using YOLOv8s
-- Detection of industrial infrastructure classes:
-  - wind turbines
-  - antennas
-  - power lines
-  - chimneys
-- FastAPI backend for image inference
-- Browser-based upload and detection interface
-- Real-time confidence scores and bounding boxes
-- Training notebook included for model experimentation
-- Designed for infrastructure monitoring and visual inspection use cases
-
----
-
-## 🧠 Model Overview
-
-SkyScan uses **YOLOv8s** from Ultralytics for object detection.
-
-The model was trained on a specialised infrastructure image dataset containing approximately **1,190 images** across four object classes:
-
-| Class | Description |
+| | |
 |---|---|
-| wind-turbine | Wind turbine detection |
-| antenna | Antenna and tower-like structure detection |
-| power-lines | Power line detection |
-| chimney | Chimney or industrial stack detection |
-
-The training workflow was developed using Google Colab with GPU acceleration.
+| ![Home](assets/skyscan-home.png) | ![Detections](assets/skyscan-sample-detections.jpg) |
+| Glassmorphic upload UI with live model status | Real detections with confidence + latency |
 
 ---
 
-## 🛠️ Tech Stack
+## Highlights
+
+- **Custom-trained model** — fine-tuned YOLOv8s on ~1,190 labelled infrastructure images (4 classes), 200 epochs, GPU training in Google Colab
+- **Measured performance** — final validation: **Precision 0.89 · Recall 0.60 · mAP@50 0.65 · mAP@50-95 0.46**
+- **Full-stack deployment** — FastAPI inference server + drag-and-drop frontend, deployed to Render with the checkpoint shipped in the repo
+- **Production thinking** — automatic best-checkpoint discovery, `/status` health endpoint, latency instrumentation, graceful model fallback
+- **Reproducible training** — complete notebook (`windmill_training_v2.ipynb`), dataset config, and all training/validation artifacts committed as evidence
+
+---
+
+## Results
+
+Final epoch (200) on the validation split:
+
+| Metric | Value |
+|---|---|
+| Precision | 0.890 |
+| Recall | 0.603 |
+| mAP@0.5 | 0.649 |
+| mAP@0.5:0.95 | 0.462 |
+
+![PR curve](assets/skyscan-pr-curve.png)
+![Confusion matrix](assets/skyscan-confusion-matrix.png)
+
+Per-class breakdown, curves, and prediction samples live in `runs/` — every number quoted above is verifiable from the committed `results.csv`.
+
+---
+
+## Architecture
+
+```text
+Browser (index.html — drag & drop, animated overlays)
+        │  POST /predict (multipart image)
+        ▼
+FastAPI (app.py)
+  ├── startup: find_latest_best_pt() → YOLO(best.pt) cached once
+  ├── inference: OpenCV decode → YOLOv8s → JSON {bbox, confidence, class, latency_ms}
+  └── GET /status → model path + checkpoint health
+        │
+        ▼
+Render (free CPU tier) — repo ships the trained checkpoint
+```
+
+Key engineering decisions:
+
+- **Model cached at startup** — reloading the 21 MB checkpoint per request was the single biggest latency source; one load makes warm inference seconds-fast
+- **Auto-discovery of the newest `best.pt`** under `runs/detect/*/weights/`, with fallback to base YOLOv8n so the API never hard-fails
+- **Palm-relative dataset design** — 4 infrastructure classes chosen to cover renewable-energy and telecom inspection use cases
+- **Latency returned with every response** so the frontend can show honest performance numbers
+
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Model | YOLOv8s |
-| Computer Vision | OpenCV |
-| Backend | FastAPI, Uvicorn |
-| Frontend | HTML, CSS, JavaScript |
-| Training | Google Colab |
-| Language | Python |
-| Deployment | Render |
+| Model | YOLOv8s (Ultralytics) |
+| Training | Google Colab GPU, 200 epochs, 640px, batch 16 |
+| Backend | FastAPI + Uvicorn |
+| Frontend | Vanilla HTML/CSS/JS (drag & drop, live overlays) |
+| Vision | OpenCV, NumPy |
+| Deployment | Render (free tier) |
 
 ---
 
-## 📦 Local Setup
+## API
 
-### 1. Clone the repository
+```text
+GET  /status    → {"status": "ready", "model_path": "...", "checkpoint_exists": true}
+POST /predict   → multipart "file"; returns detections + latency_ms
+```
+
+Try it:
+
+```bash
+curl -X POST https://skyscan-ods6.onrender.com/predict \
+  -F "file=@your_image.jpg"
+```
+
+Interactive Swagger UI: https://skyscan-ods6.onrender.com/docs
+
+---
+
+## Local Setup
 
 ```bash
 git clone https://github.com/radhika-verma06/SkyScan.git
 cd SkyScan
+pip install -r requirements.txt
+python3 app.py        # → http://localhost:8000
 ```
 
-### 2. Install dependencies
-
-```bash
-pip install ultralytics fastapi uvicorn opencv-python-headless python-multipart
-```
-
-### 3. Run the application
-
-```bash
-python3 app.py
-```
-
-The app will run locally at:
-
-```text
-http://localhost:8000
-```
+Retraining (optional): open `windmill_training_v2.ipynb`, point `data.yaml` at your dataset copy, and run the notebook. The app auto-loads the newest checkpoint from `runs/detect/*/weights/best.pt`.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 SkyScan/
-├── app.py
-├── static/
-├── templates/
+├── app.py                        # FastAPI inference server
+├── index.html                    # Browser UI (single-file frontend)
+├── data.yaml                     # YOLO dataset config
+├── train.py                      # Standalone training script
+├── windmill_training_v2.ipynb    # Full training notebook (Colab)
 ├── runs/
-├── windmill_training_v2.ipynb
-├── requirements.txt
-└── README.md
+│   ├── detect/high_precision_windmill-4/weights/best.pt   # deployed checkpoint
+│   ├── detect/train2/            # training logs, curves, results.csv
+│   └── detect/val3/              # validation evidence (PR, F1, confusion matrix)
+├── assets/                       # README screenshots and result charts
+└── requirements.txt
 ```
 
 ---
 
-## 📊 Training Workflow
+## Use Cases
 
-The included training notebook, `windmill_training_v2.ipynb`, documents the model development process.
-
-The training process includes:
-
-- dataset preparation
-- class labelling
-- YOLOv8s model configuration
-- model training
-- validation
-- inference testing
-- result visualisation
+- Renewable-energy asset monitoring (wind farm inspection)
+- Telecom infrastructure inventory (antennas/towers)
+- Power-grid line mapping
+- Aerial/drone image triage
+- Industrial site compliance review
 
 ---
 
-## 💡 Use Cases
+## Honest Limitations
 
-SkyScan can be used as a prototype for:
+- Dataset is ~1,190 images — solid for a prototype, not production-grade
+- Recall (0.60) lags precision (0.89): the model is conservative and misses small/occluded objects
+- Free-tier Render cold starts take 1–2 minutes; production would need a paid instance or autoscaling warm pool
+- Single-image inference only; batch/video modes are planned
 
-- infrastructure inspection
-- renewable energy asset monitoring
-- aerial image analysis
-- industrial site review
-- computer vision portfolio demonstration
+## Roadmap
 
----
-
-## ⚠️ Limitations
-
-This project is a prototype and should not be treated as a production-grade inspection system without further validation.
-
-Current limitations include:
-
-- limited dataset size
-- performance depends on image quality and angle
-- model may struggle with occluded or distant objects
-- requires further testing on real-world industrial inspection data
+- [ ] Expand dataset (target: 5k+ images, harder negatives) to push mAP@50 past 0.75
+- [ ] Batch upload + video inference
+- [ ] Dockerized deploy with health-checked warm keep-alive
+- [ ] Per-class thresholds and NMS tuning sweep
+- [ ] Model registry / version tracking for checkpoints
 
 ---
 
-## 🔮 Future Improvements
+## License
 
-- Train on a larger and more diverse dataset
-- Add precision, recall, and mAP evaluation results to the README
-- Add batch image upload
-- Add video inference support
-- Add object count summaries
-- Improve deployment reliability
-- Add Docker support
-- Add model version tracking
+MIT — see [LICENSE](LICENSE).
 
----
-
-## 📄 License
-
-MIT License
-
----
-
-### Developed by Radhika Verma  
-AI Student | Computer Vision | Applied AI Systems
+### Built by Radhika Verma
+AI student · Computer Vision · Applied AI Systems

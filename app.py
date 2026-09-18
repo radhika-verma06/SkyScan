@@ -29,6 +29,11 @@ def get_model():
     print("Falling back to base YOLOv8n model.")
     return YOLO("yolov8n.pt")
 
+# Load the model once at startup instead of per-request.
+# Reloading a 21MB checkpoint on every inference added ~2 minutes of latency
+# on Render's free CPU tier; caching it makes warm requests finish in seconds.
+MODEL = get_model()
+
 import time
 
 @app.post("/predict")
@@ -41,7 +46,7 @@ async def predict(file: UploadFile = File(...)):
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     # Run inference
-    model = get_model()
+    model = MODEL
     results = model(img)
 
     detections = []
